@@ -127,7 +127,7 @@ public class VMSLogger implements IFileLogger
     	
     	DatabaseHandler handler = new DatabaseHandler(context);
     	
-    	// Get logged data from the DB:
+    	// Get logged data from the DB which has 'sent_status' NOT EQUAL '1':
     	List<Waypoints> pointList = handler.getWaypoints(true);
     	// Send logged data again to VMS server:
     	if (!pointList.isEmpty()){

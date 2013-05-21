@@ -7,8 +7,18 @@ import android.location.Location;
 
 public class Session extends Application
 {
+	// For debugging purpose:
+	private static boolean debugEnabled = false;
+	
+    public static boolean isDebugEnabled() {
+		return debugEnabled;
+	}
 
-    // ---------------------------------------------------
+	public static void setDebugEnabled(boolean debugEnabled) {
+		Session.debugEnabled = debugEnabled;
+	}
+
+	// ---------------------------------------------------
     // Session values - updated as the app runs
     // ---------------------------------------------------
     private static boolean towerEnabled;
@@ -36,6 +46,7 @@ public class Session extends Application
     private static boolean isCheckin = false;
     private static String locStatus = "";//default empty string ""
     private static boolean isStartStop = false;
+    private static boolean checkinWithoutRoute = false;//'true' if user click on 'checkin' without any 'start' action. Means that this 'checkin' point not belong to any route.
 
     /*public static boolean isSinglePointMode()
     {
@@ -49,7 +60,15 @@ public class Session extends Application
 
     // ---------------------------------------------------
 
-    public static boolean isStartStop() {
+    public static boolean isCheckinWithoutRoute() {
+		return checkinWithoutRoute;
+	}
+
+	public static void setCheckinWithoutRoute(boolean checkinWithoutRoute) {
+		Session.checkinWithoutRoute = checkinWithoutRoute;
+	}
+
+	public static boolean isStartStop() {
 		return isStartStop;
 	}
 

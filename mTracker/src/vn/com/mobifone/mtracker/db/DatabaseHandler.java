@@ -339,6 +339,76 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		// return waypoint list
 		return waypointList;
 	}
+	
+	
+	/**
+	 * Get list of checked-in waypoints with time < current time.
+	 * @param with_sent_status \n 
+	 * 			given 'true' to select point success sent.\n 
+	 * 			given 'false' to select all logged points.\n
+	 * @return list off selected waypoints.
+	 */
+	public List<Waypoints> getCheckinWaypoints(boolean with_sent_status) {
+
+		List<Waypoints> waypointList = new ArrayList<Waypoints>();
+
+		// Select All Query
+		String selectQuery = "";
+		String today0hr = getTimeFromZerohourToday();
+		
+		if (with_sent_status) {
+			// Get checked-in waypoints logged today && not successfully sent yet
+			selectQuery = "SELECT  * FROM " + Waypoints.TABLE
+					+ " WHERE TIME < " + System.currentTimeMillis()
+					+ " AND TIME >= " + today0hr 
+					+ " AND SENT_STATUS != 1"
+					+ " AND CHECKIN_STATUS == 1"
+					+ " ORDER BY TIME";
+		} else {
+			// Get checked-in waypoints logged today.
+			selectQuery = "SELECT  * FROM " + Waypoints.TABLE
+					+ " WHERE TIME < " + System.currentTimeMillis()
+					+ " AND TIME >= " + today0hr
+					+ " AND CHECKIN_STATUS == 1"
+					+ " ORDER BY TIME";
+		}
+
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+
+		// looping through all rows and adding to list
+		if (cursor.moveToFirst()) {
+			do {
+				Waypoints point = new Waypoints();
+				point.setImei(cursor.getString(cursor
+						.getColumnIndex(WaypointsColumns.IMEI_COL)));
+				point.setAccuracy(cursor.getFloat(cursor
+						.getColumnIndex(WaypointsColumns.ACCURACY_COL)));
+				point.setAltitude(cursor.getFloat(cursor
+						.getColumnIndex(WaypointsColumns.ALTITUDE_COL)));
+				point.setBearing(cursor.getFloat(cursor
+						.getColumnIndex(WaypointsColumns.BEARING_COL)));
+				point.setCheckin_status(cursor.getInt(cursor
+						.getColumnIndex(WaypointsColumns.CHECKIN_STATUS_COL)));
+				point.setLatitude(cursor.getFloat(cursor
+						.getColumnIndex(WaypointsColumns.LATITUDE_COL)));
+				point.setLongtitude(cursor.getFloat(cursor
+						.getColumnIndex(WaypointsColumns.LONGITUDE_COL)));
+				point.setSpeed(cursor.getFloat(cursor
+						.getColumnIndex(WaypointsColumns.SPEED_COL)));
+				point.setTime(cursor.getLong(cursor
+						.getColumnIndex(WaypointsColumns.TIME_COL)));
+				point.setSent_status(cursor.getInt(cursor
+						.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
+				point.setLoc_status(cursor.getString(cursor
+						.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
+				// Adding contact to list
+				waypointList.add(point);
+			} while (cursor.moveToNext());
+		}
+		// return waypoint list
+		return waypointList;
+	}
 
 	/**
 	 * Get visit counting

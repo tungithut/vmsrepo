@@ -21,6 +21,7 @@ import vn.com.mobifone.mtracker.common.Session;
 import vn.com.mobifone.mtracker.common.Utilities;
 import vn.com.mobifone.mtracker.db.DatabaseHandler;
 import vn.com.mobifone.mtracker.db.DatabaseHandler.Waypoints;
+import vn.com.mobifone.mtracker.loggers.VMSLogger;
 
 
 import com.google.android.gms.common.ConnectionResult;
@@ -87,7 +88,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
             loggingService = ((VMSLoggingService.ServiceBinder) service).getService();
             VMSLoggingService.SetServiceClient(VMSMainActivity.this);
 
-            Toast.makeText(getApplicationContext(), "onServiced connected !", Toast.LENGTH_SHORT).show();
+            if (Session.isDebugEnabled()){
+            	Toast.makeText(getApplicationContext(), "onServiced connected !", Toast.LENGTH_SHORT).show();
+            }
             //Button buttonSinglePoint = (Button) findViewById(R.id.buttonSinglePoint);
 
             //buttonSinglePoint.setOnClickListener(VMSMainActivity.this);
@@ -119,8 +122,19 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		Toast.makeText(getApplicationContext(), "MainAct.onCreate!", Toast.LENGTH_SHORT).show();
+		
+		// Temporary for debugging purpose:
+		Session.setDebugEnabled(false);
+		
+		if (Session.isDebugEnabled()){
+			Toast.makeText(getApplicationContext(), "MainAct.onCreate!", Toast.LENGTH_SHORT).show();
+		}
+		
 		StartAndBindService();
+		
+ 		// Synchnronize logged data with VMS server:
+ 		//	This will send all logged data which have 'sent_staus' not '1' to VMS server.
+ 		this.synchLoggedDataToVMS();
 		
 		//Button stop default is disable when launched.
 		Button btnStop = (Button) findViewById(R.id.buttonStop);
@@ -130,32 +144,26 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     	// Getting Google Play service availablity ?!
  		int status = GooglePlayServicesUtil
  				.isGooglePlayServicesAvailable(getBaseContext());
-
  		// Showing status
- 		if (status != ConnectionResult.SUCCESS) { // Google Play Services are
- 													// not available
-
+ 		if (status != ConnectionResult.SUCCESS) { 
+ 			// Google Play Services are not available
  			int requestCode = 10;
  			Dialog dialog = GooglePlayServicesUtil.getErrorDialog(status, this,
  					requestCode);
  			dialog.show();
-
- 		} else { // Google Play Services are available
-
+ 		} else { 
  			// Getting reference to the MapFragment of activity_main.xml
- 			MapFragment fm = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-
+ 			MapFragment fm = (MapFragment) 
+ 					getFragmentManager().findFragmentById(R.id.map);
  			// Getting GoogleMap object from the fragment
  			googleMap = fm.getMap();
-
  			// Enabling MyLocation Layer of Google Map
  			googleMap.setMyLocationEnabled(true);
- 			
  			//Location location = getCurrentLocation();//display current location
  			drawRoute();
  			//showVisitPlaceDB();
  		}
-	}
+ 	}
 	
 	/**
 	 * Display the given location in the center of screen, and got focus in zoom.
@@ -177,7 +185,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 			} else if ("stop".equals(status)) {
 				iconId = R.drawable.route_end;
 			} else {
-				iconId = R.drawable.map_pin;
+				iconId = R.drawable.map_marker_fav_place;
 			}
 			
 			Marker place = googleMap.addMarker(new MarkerOptions()
@@ -218,7 +226,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 				.position(latLng)
 				.title("Checkin place")
 				.icon(BitmapDescriptorFactory
-						.fromResource(R.drawable.map_pin)));
+						.fromResource(R.drawable.map_marker_fav_place)));
 	}
 	
 	/**
@@ -226,9 +234,15 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 	 * (only today checkin place should be display.
 	 */
 	public void showVisitPlaceDB(){
-		Toast.makeText(getApplicationContext(), "MainAct.showVisitPlaceDB!", Toast.LENGTH_SHORT).show();
+		if (Session.isDebugEnabled()){
+			Toast.makeText(getApplicationContext(), "MainAct.showVisitPlaceDB!", 
+					Toast.LENGTH_SHORT).show();
+		}
+		
 		DatabaseHandler db = new DatabaseHandler(getApplicationContext());
-		List<Waypoints> list = db.getWaypoints(false);
+		//List<Waypoints> list = db.getWaypoints(false);
+		List<Waypoints> list = db.getCheckinWaypoints(false);
+		
 		for (Waypoints point : list){
 			
 			double latitude = point.getLatitude();
@@ -238,14 +252,14 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 			//Mark visit point on the map:
 			Marker place = googleMap.addMarker(new MarkerOptions()
 			.position(latLng)
-			.title("Checkin place")
+			.title("Checked-in place")
 			.icon(BitmapDescriptorFactory
-					.fromResource(R.drawable.map_pin)));
+					.fromResource(R.drawable.map_marker_fav_place)));
 		}
 	}
 	
 	/**
-	 * This function draws Routes accross today logging points from DB
+	 * This function draws Routes accross TODAY logging points from DB
 	 * @param location
 	 */
 	private void drawRoute(){
@@ -333,7 +347,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 	}
 	
 	/**
-     * THis function uses main UI processing to locate current location.
+     * THis function used for the MAIN UI processing to locate current location.
 	 * (for testing purpose, need to remove at the release version.
      * @param location
      */
@@ -365,7 +379,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 				.title("You are here")
 				.snippet("Hello")
 				.icon(BitmapDescriptorFactory
-						.fromResource(R.drawable.current_pos_pin)));
+						.fromResource(R.drawable.current_location_pin)));
 	
 		}
 	
@@ -398,7 +412,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     	// button STOP will be enabled.
     	Button btnStop = (Button) findViewById(R.id.buttonStop);
     	btnStop.setEnabled(true);
-    	Toast.makeText(getApplicationContext(), "onclickstart", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "onclickstart", Toast.LENGTH_SHORT).show();
+    	}
     	// sending current location to VMS server, flag it as 'start' status.
     	if (loggingService != null){
     		// start button procedure:
@@ -418,7 +434,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     	// button START will be enabled.
     	Button btnStart = (Button) findViewById(R.id.buttonStart);
     	btnStart.setEnabled(true);
-    	Toast.makeText(getApplicationContext(), "onclickstop", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "onclickstop", Toast.LENGTH_SHORT).show();
+    	}
     	// sending current location to VMS server, flag it as 'stop' status.
     	if (loggingService != null){
     		// stop button procedure:
@@ -433,7 +451,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     public void onClick(View view)
     {
        //TODO: have the implementation of checkin procedures here:
-    	Session.setCheckin(true);
+    	//Session.setCheckin(true);
     	
     	if (loggingService != null){
     		//int num = loggingService.getRandomNumber();
@@ -474,7 +492,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     private void StartAndBindService()
     {
         Utilities.LogDebug("StartAndBindService - binding now");
-        Toast.makeText(getApplicationContext(), "MainAct.StartAndBindService!", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "MainAct.StartAndBindService!", Toast.LENGTH_SHORT).show();
+        }
         serviceIntent = new Intent(this, VMSLoggingService.class);
         // Start the service in case it isn't already running
         startService(serviceIntent);
@@ -490,7 +510,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     private void StopAndUnbindServiceIfRequired()
     {
         Utilities.LogDebug("VMSMainActivity.StopAndUnbindServiceIfRequired");
-        Toast.makeText(getApplicationContext(), "MainAct.StopAndUnbindServiceIfRequired!", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "MainAct.StopAndUnbindServiceIfRequired!", Toast.LENGTH_SHORT).show();
+        }
         if (Session.isBoundToService())
         {
             unbindService(gpsServiceConnection);
@@ -510,7 +532,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     protected void onStart()
     {
         Utilities.LogDebug("VMSMainActivity.onStart");
-        Toast.makeText(getApplicationContext(), "MainAct.onStart", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "MainAct.onStart", Toast.LENGTH_SHORT).show();
+        }
         super.onStart();
         StartAndBindService();
         
@@ -520,7 +544,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     protected void onResume()
     {
         //Utilities.LogDebug("VMSMainActivity.onResume");
-    	Toast.makeText(getApplicationContext(), "MainAct.onResume", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "MainAct.onResume", Toast.LENGTH_SHORT).show();
+    	}
         super.onResume();
         Session.setImei(getImei());
         
@@ -544,7 +570,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     @Override
     protected void onPause()
     {
-    	Toast.makeText(getApplicationContext(), "MainAct.onPause", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "MainAct.onPause", Toast.LENGTH_SHORT).show();
+    	}
         Utilities.LogDebug("VMSMainActivity.onPause");
         StopAndUnbindServiceIfRequired();
         super.onPause();
@@ -555,7 +583,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     {
 
         Utilities.LogDebug("VMSMainActivity.onDestroy");
-        Toast.makeText(getApplicationContext(), "MainAct.onDestroy", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "MainAct.onDestroy", Toast.LENGTH_SHORT).show();
+        }
         StopAndUnbindServiceIfRequired();
         super.onDestroy();
         //unbindService(gpsServiceConnection);//tnt.add
@@ -661,6 +691,10 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
             case R.id.mnuExit:
                 loggingService.StopLogging();
                 loggingService.stopSelf();
+                // Synchnorize the logged data to VMS server before exit.
+         		this.synchLoggedDataToVMS();
+         		// Clear session data before exit.
+                clearSessionData();
                 finish();
                 break;
         }
@@ -690,13 +724,35 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     	drawRoute();
     	showVisitPlaceDB();
     	// Add an Mark to the current location:
-    	Marker currentPos = googleMap.addMarker(new MarkerOptions()
+    	// No need to display current location pin, 
+    	//	due to Main UI already had one in the MapFragement
+    	/*
+    	 * Marker currentPos = googleMap.addMarker(new MarkerOptions()
     					.position(new LatLng(loc.getLatitude(), loc.getLongitude()))
     					.title("You are here")
     					.snippet("Hello")
     					.icon(BitmapDescriptorFactory
-    							.fromResource(R.drawable.current_pos_pin)));
+    							.fromResource(R.drawable.current_location_pin)));
+    							*/
     }
-
+    
+    /**
+     * We need to clear session data when user really want to EXIT the app.
+     */
+    public void clearSessionData(){
+    	Session.setCheckin(false);
+    	Session.setCheckinWithoutRoute(false);
+    	Session.setStartStop(false);
+    	Session.setStarted(false);
+    }
+    
+    /**
+     * This function should be called at the time enter the app to sync logged data in the DB with VMS server.
+     */
+    public void synchLoggedDataToVMS(){
+    	GetPreferences();
+    	VMSLogger vmsLogger = new VMSLogger();
+        vmsLogger.autoSendLoggedData(getApplicationContext());
+    }
 
 }

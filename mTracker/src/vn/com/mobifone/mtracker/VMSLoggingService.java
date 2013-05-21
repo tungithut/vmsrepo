@@ -66,7 +66,9 @@ public class VMSLoggingService extends Service implements IActionListener
     public void onCreate()
     {
         Utilities.LogDebug("VMSLoggingService.onCreate");
-        Toast.makeText(getApplicationContext(), "service:onCreate", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service:onCreate", Toast.LENGTH_SHORT).show();
+        }
         nextPointAlarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 
         Utilities.LogInfo("GPSLoggerService created");
@@ -76,7 +78,9 @@ public class VMSLoggingService extends Service implements IActionListener
     public void onStart(Intent intent, int startId)
     {
         Utilities.LogDebug("VMSLoggingService.onStart");
-        Toast.makeText(getApplicationContext(), "service: onStart", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service: onStart", Toast.LENGTH_SHORT).show();
+        }
         HandleIntent(intent);
     }
 
@@ -85,7 +89,9 @@ public class VMSLoggingService extends Service implements IActionListener
     {
 
         Utilities.LogDebug("VMSLoggingService.onStartCommand");
-        Toast.makeText(getApplicationContext(), "service: onStartCommand", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service: onStartCommand", Toast.LENGTH_SHORT).show();
+        }
         HandleIntent(intent);
         return START_REDELIVER_INTENT;
     }
@@ -94,7 +100,9 @@ public class VMSLoggingService extends Service implements IActionListener
     public void onDestroy()
     {
         Utilities.LogWarning("VMSLoggingService is being destroyed by Android OS.");
-        Toast.makeText(getApplicationContext(), "service.onDestroy", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.onDestroy", Toast.LENGTH_SHORT).show();
+        }
         mainServiceClient = null;
         super.onDestroy();
     }
@@ -103,7 +111,9 @@ public class VMSLoggingService extends Service implements IActionListener
     public void onLowMemory()
     {
         Utilities.LogWarning("Android is low on memory.");
-        //Toast.makeText(getApplicationContext(), "service.onDestroy", Toast.LENGTH_SHORT);
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.onDestroy:low memory", Toast.LENGTH_SHORT);
+        }
         super.onLowMemory();
     }
 
@@ -111,7 +121,9 @@ public class VMSLoggingService extends Service implements IActionListener
     {
 
         Utilities.LogDebug("VMSLoggingService.handleIntent");
-        Toast.makeText(getApplicationContext(), "service.handleIntent", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.handleIntent", Toast.LENGTH_SHORT).show();
+        }
         GetPreferences();
 
         Utilities.LogDebug("Null intent? " + String.valueOf(intent == null));
@@ -175,14 +187,18 @@ public class VMSLoggingService extends Service implements IActionListener
     public void OnComplete()
     {
         //Utilities.HideProgress();
-        Toast.makeText(getApplicationContext(), "service.onComplete", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "service.onComplete", Toast.LENGTH_SHORT).show();
+    	}
     }
 
     @Override
     public void OnFailure()
     {
         //Utilities.HideProgress();
-        Toast.makeText(getApplicationContext(), "service.onFailure", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "service.onFailure", Toast.LENGTH_SHORT).show();
+    	}
     }
 
     /**
@@ -365,7 +381,9 @@ public class VMSLoggingService extends Service implements IActionListener
     protected void StartLogging()
     {
         Utilities.LogDebug("VMSLoggingService.StartLogging");
-        Toast.makeText(getApplicationContext(), "service.startLogging", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.startLogging", Toast.LENGTH_SHORT).show();
+        }
         Session.setAddNewTrackSegment(true);
 
         if (Session.isStarted())
@@ -411,7 +429,9 @@ public class VMSLoggingService extends Service implements IActionListener
     public void StopLogging()
     {
         Utilities.LogDebug("VMSLoggingService.StopLogging");
-        Toast.makeText(getApplicationContext(), "service.stopLogging", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.stopLogging", Toast.LENGTH_SHORT).show();
+        }
         Session.setAddNewTrackSegment(true);
 
         Utilities.LogInfo("Stopping logging");
@@ -512,7 +532,9 @@ public class VMSLoggingService extends Service implements IActionListener
     private void StartGpsManager()
     {
         Utilities.LogDebug("VMSLoggingService.StartGpsManager");
-        Toast.makeText(getApplicationContext(), "service.startGPSManager", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.startGPSManager", Toast.LENGTH_SHORT).show();
+        }
 
         GetPreferences();
 
@@ -583,7 +605,9 @@ public class VMSLoggingService extends Service implements IActionListener
      */
     private void StopGpsManager()
     {
-    	Toast.makeText(getApplicationContext(), "service.StopGpsManager", Toast.LENGTH_SHORT).show();
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), "service.StopGpsManager", Toast.LENGTH_SHORT).show();
+    	}
         Utilities.LogDebug("VMSLoggingService.StopGpsManager");
 
         if (towerLocationListener != null)
@@ -694,7 +718,9 @@ public class VMSLoggingService extends Service implements IActionListener
     void RestartGpsManagers()
     {
         Utilities.LogDebug("VMSLoggingService.RestartGpsManagers");
-        Toast.makeText(getApplicationContext(), "service.RestartGpsManager", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.RestartGpsManager", Toast.LENGTH_SHORT).show();
+        }
         StopGpsManager();
         StartGpsManager();
     }
@@ -710,7 +736,9 @@ public class VMSLoggingService extends Service implements IActionListener
     void OnLocationChanged(Location loc)
     {
         int retryTimeout = Session.getRetryTimeout();
-        Toast.makeText(getApplicationContext(), "service.OnLocationChanged", Toast.LENGTH_SHORT).show();
+        if (Session.isDebugEnabled()){
+        	Toast.makeText(getApplicationContext(), "service.OnLocationChanged", Toast.LENGTH_SHORT).show();
+        }
 
         if (!Session.isStarted())
         {
@@ -906,12 +934,18 @@ public class VMSLoggingService extends Service implements IActionListener
 
     }*/
     
+    /**
+     * This function is called at the time onLocationChange fired.
+     * It will write found current location into Database for following sending procedure provided by alarm events.
+     * @param loc
+     */
     private void WriteToFile(Location loc)
     {
     	Utilities.LogDebug("VMSLoggingService.WriteToFile");
-    	Toast.makeText(getApplicationContext(), 
+    	if (Session.isDebugEnabled()){
+    		Toast.makeText(getApplicationContext(), 
     			"VMSservice.WriteToFile", Toast.LENGTH_SHORT).show();
-    	
+    	}
     	TelephonyManager telephonyManager = (TelephonyManager)
     			getSystemService(Context.TELEPHONY_SERVICE);
     	String imei = telephonyManager.getDeviceId();
@@ -928,23 +962,38 @@ public class VMSLoggingService extends Service implements IActionListener
         	
 			new VMSLogger().LogToDatabase(loc, cv, getApplicationContext());
 			
-			// if we've come from 'stop' process, at this point we have succesfully write on the DB,
+			// if we've come from 'stop' process, at this point we have successfully write on the DB,
 			// we need to stop the logging process.
 			if ("stop".equals(Session.getLocStatus())){
-				// Stop message
+				// Immediatately send the logged data to VMS server
+				Utilities.LogInfo("Auto sending to VMS after STOP");	            
+	            VMSLogger vmsLogger = new VMSLogger();
+	            vmsLogger.autoSendLoggedData(getApplicationContext());
+				
+	            // Now will stop logging process.
 				Toast.makeText(getApplicationContext(), R.string.vms_stop_message, Toast.LENGTH_LONG).show();
 				StopLogging();
+	            
 			} else if ("start".equals(Session.getLocStatus())){
 				// Start message
 				Toast.makeText(getApplicationContext(), R.string.vms_start_message, Toast.LENGTH_LONG).show();
 			} else if (Session.isCheckin()){
 				// Checkin message
-				Toast.makeText(getApplicationContext(), R.string.vms_checkin_message, Toast.LENGTH_LONG).show();
+				//Toast.makeText(getApplicationContext(), R.string.vms_checkin_message, Toast.LENGTH_LONG).show();
 			}
 			
 			// Reset all checkin/start/stop status.
-			if (Session.isCheckin()) 		//come here, we've done checkin processes.
+			if (Session.isCheckin()) {		
+				//come here, we've done checkin processes.
         		Session.setCheckin(false);
+        		
+        		if (Session.isCheckinWithoutRoute()){
+        			// in case of checkin action without route, must explicitly 'stop' the logging progress.
+        			StopLogging();
+        		}
+        		
+        		Toast.makeText(getApplicationContext(), R.string.vms_checkin_message, Toast.LENGTH_LONG).show();
+			}
     		
         	Session.setLocStatus("");// reset loc status.
         	Session.setStartStop(false);
@@ -984,18 +1033,30 @@ public class VMSLoggingService extends Service implements IActionListener
     public void doCheckin(){
     	
     	boolean locationNotFix = true;
+    	
+    	// validate if user has clicked on the 'checkin' double times:
+    	if (Session.isCheckin()){
+    		// do nothing if we not yet finished checkin at recent location
+    		Toast.makeText(getApplicationContext(), "Be patient, please wait for the check-in progress...", Toast.LENGTH_LONG).show();
+    		return ;
+    	}
+    	
     	Session.setCheckin(true);
     	int count = 5;
     	
     	if (!Session.isStarted()){
     		//User click on 'checkin' without any awareness of clicking on the Start button.
     		// we still have to recognize their work.
+    		Session.setCheckinWithoutRoute(true);
     		SetupAutoSendTimers();
             StartLogging();
+    	} else {
+    		// Checkin action on the current Route.
+    		Session.setCheckinWithoutRoute(false);
     	}
     	
     	// we seek for the current location:
-    	while (locationNotFix && (count-- > 0)){
+    	/*while (locationNotFix && (count-- > 0)){
     		StartGpsManager();
     		Location currentLocation = Session.getCurrentLocationInfo();
     		if (currentLocation != null){
@@ -1003,7 +1064,7 @@ public class VMSLoggingService extends Service implements IActionListener
     			locationNotFix = false;
     			
     		} 
-    	}	
+    	}*/	
     }
     
     /**
@@ -1036,12 +1097,21 @@ public class VMSLoggingService extends Service implements IActionListener
     		//from main activity
     		//StopLogging();
     		//from main activity
-    		SetupAutoSendTimers();
-            StartLogging();
+    		// 20/5/2013: come here, we assume that the 'start' process is already on-going, it means that the logging process is logging,
+    		// and the timer alarm is already set. No need to setup timer and start logging. we always have logging and timer available at this moment.
+    		if (false){
+    			SetupAutoSendTimers();
+    			StartLogging();
+    		}
     	}
     		
+    	Location currentLocation = Session.getCurrentLocationInfo();
+    	if (currentLocation!=null){
+    		mainServiceClient.zoomToLocation(currentLocation, locStatus);
+    	}
+    	
     	// we seek for the current location:
-    	while (locationNotFix && (count-- > 0)){
+    	/*while (locationNotFix && (count-- > 0)){
     		StartGpsManager();
     		Location currentLocation = Session.getCurrentLocationInfo();
     		if (currentLocation != null){
@@ -1049,7 +1119,7 @@ public class VMSLoggingService extends Service implements IActionListener
     			locationNotFix = false;
     			mainServiceClient.zoomToLocation(currentLocation, locStatus);
     		} 
-    	}
+    	}*/
     	
     	
     }

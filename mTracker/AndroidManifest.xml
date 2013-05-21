@@ -39,7 +39,8 @@
         <activity
             android:name="vn.com.mobifone.mtracker.VMSMainActivity"
             android:label="@string/app_name" 
-            android:launchMode="singleTask" android:configChanges="locale"      >
+            android:launchMode="singleTask" android:configChanges="locale"
+            android:screenOrientation="portrait"      >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -49,9 +50,9 @@
         
         <service android:name="vn.com.mobifone.mtracker.VMSLoggingService">
             <!-- To make this service available to other apps as well -->
-            <intent-filter>
+            <!-- <intent-filter>
 				<action android:name="vn.com.mobifone.mtracker.VMSLoggingService" />
-			</intent-filter>
+			</intent-filter> -->
         </service>
         
         <activity android:name="vn.com.mobifone.mtracker.VMSSettingsActivity"
