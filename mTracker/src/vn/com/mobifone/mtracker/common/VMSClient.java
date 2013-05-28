@@ -106,7 +106,7 @@ public class VMSClient
               
                 Utilities.LogDebug("Sending URL " + url + " with params " + params.toString());
                 httpClient.get(applicationContext, url.toString(), 
-                		params, new MyResponseHandlerSavedData(this, point));
+                		params, new MyResponseHandlerSavedData(this, point, params.toString()));
                 
             }
         }
@@ -276,27 +276,30 @@ public class VMSClient
     {
         private VMSClient callback;
         private Waypoints point;
+        private String params;
 
-        public MyResponseHandlerSavedData(VMSClient callback, Waypoints p)
+        public MyResponseHandlerSavedData(VMSClient callback, Waypoints p, String sParams)
         {
             super();
             this.callback = callback;
             this.point = p;
+            this.params = sParams;
         }
 
         @Override
         public void onSuccess(String response)
         {
-            Utilities.LogInfo("Response Success :" + response);
+            //Utilities.LogInfo("Response Success :" + response);
             // response must be 'OK' to be sure the data sent successfully
-            
             if (response != null && 
             		("OK".equals(response) || "OK\n\r\n".equals(response))){
             	// update into DB the sent_status become '1'.
-	            dbHandler.updateWaypointSent(point, SEND_SUCCESS);
+            	Utilities.LogInfo("onSuccess.Success :" + response);
+            	dbHandler.updateWaypointSent(point, SEND_SUCCESS);
 	            callback.OnCompleteLocation();
             } else {
             	// still failure.Do nothing (we already had data).
+            	Utilities.LogError("onSucess.Failure :" + response + " params:" + params, new Exception(""));
             	callback.OnFailure();
             }
         }
@@ -322,7 +325,7 @@ public class VMSClient
 		@Override
         public void onFailure(Throwable e, String response)
         {
-            Utilities.LogError("OnCompleteLocation.MyResponseHandlerSavedData Failure with response :" + response, new Exception(e));
+            Utilities.LogError("onFailure.MyResponseHandlerSavedData Failure with response :" + response, new Exception(e));
             //Do nothing. we already had data.
             callback.OnFailure();
         }
@@ -331,7 +334,7 @@ public class VMSClient
     public void OnCompleteLocation()
     {
         sentLocationsCount += 1;
-        Utilities.LogDebug("Sent locations count: " + sentLocationsCount + "/" + locationsCount);
+        Utilities.LogDebug("OnCompleteLocation.Sent locations count: " + sentLocationsCount + "/" + locationsCount);
         if (locationsCount == sentLocationsCount)
         {
             OnComplete();

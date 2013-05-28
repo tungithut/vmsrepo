@@ -52,6 +52,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.telephony.TelephonyManager;
 import android.view.KeyEvent;
@@ -135,6 +136,9 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
  		// Synchnronize logged data with VMS server:
  		//	This will send all logged data which have 'sent_staus' not '1' to VMS server.
  		this.synchLoggedDataToVMS();
+ 		
+ 		// The app always work on PORTRAIT mode.
+ 		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		
 		//Button stop default is disable when launched.
 		Button btnStop = (Button) findViewById(R.id.buttonStop);
@@ -689,10 +693,10 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
                 //startActivity(faqtivity);
                 break;
             case R.id.mnuExit:
-                loggingService.StopLogging();
-                loggingService.stopSelf();
                 // Synchnorize the logged data to VMS server before exit.
          		this.synchLoggedDataToVMS();
+         		loggingService.StopLogging();
+                loggingService.stopSelf();
          		// Clear session data before exit.
                 clearSessionData();
                 finish();
@@ -744,6 +748,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     	Session.setCheckinWithoutRoute(false);
     	Session.setStartStop(false);
     	Session.setStarted(false);
+    	Session.setLaunched(false);
     }
     
     /**
@@ -752,7 +757,15 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
     public void synchLoggedDataToVMS(){
     	GetPreferences();
     	VMSLogger vmsLogger = new VMSLogger();
-        vmsLogger.autoSendLoggedData(getApplicationContext());
+    	try {
+    		vmsLogger.autoSendLoggedData(getApplicationContext());
+    		
+    	} catch (Exception e) {
+    		// This happended when the first time installing the app, we don't have 
+    		// port/server/path setting, so the parsing function will fire illegal parsing
+    		// exception, just ommit this case.
+    		Utilities.LogError("synchLoggedDataToVMS", e);
+    	}
     }
 
 }

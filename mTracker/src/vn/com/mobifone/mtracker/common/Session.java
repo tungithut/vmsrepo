@@ -8,7 +8,7 @@ import android.location.Location;
 public class Session extends Application
 {
 	// For debugging purpose:
-	private static boolean debugEnabled = false;
+	private static boolean debugEnabled = true;
 	
     public static boolean isDebugEnabled() {
 		return debugEnabled;
@@ -47,6 +47,7 @@ public class Session extends Application
     private static String locStatus = "";//default empty string ""
     private static boolean isStartStop = false;
     private static boolean checkinWithoutRoute = false;//'true' if user click on 'checkin' without any 'start' action. Means that this 'checkin' point not belong to any route.
+    private static boolean isLaunched = false;//default: not launched yet, for animation on splash screen determination
 
     /*public static boolean isSinglePointMode()
     {
@@ -60,7 +61,15 @@ public class Session extends Application
 
     // ---------------------------------------------------
 
-    public static boolean isCheckinWithoutRoute() {
+    public static boolean isLaunched() {
+		return isLaunched;
+	}
+
+	public static void setLaunched(boolean isLaunched) {
+		Session.isLaunched = isLaunched;
+	}
+
+	public static boolean isCheckinWithoutRoute() {
 		return checkinWithoutRoute;
 	}
 

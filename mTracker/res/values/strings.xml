@@ -2,6 +2,11 @@
 <resources>
 
     <string name="app_name">mTracker</string>
+    <string name="appTitle1">VMS MobiFone</string>
+    <string name="appTitle2">Tracking Solution</string>
+    <string name="appInfo">Version 1.0 2013. \n Developed by VMS IT Department</string>
+    
+    
     <string name="action_settings">Settings</string>
     <string name="btn_stop_logging">Stop logging</string>
     <string name="btn_start_logging">Start logging</string>
@@ -19,6 +24,9 @@
     <string name="vms_stop_message">Stop logging successfully</string>
     <string name="vms_start_message">Start logging...successfully</string>
     <string name="vms_checkin_message">Check-in successfully</string>
+    
+    
+    
     
     <!-- original below -->
     <string name="settings_screen_name">VMSTracker Settings</string>

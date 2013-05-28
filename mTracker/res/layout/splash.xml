@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/appTitle1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginBottom="15dp"
+            android:gravity="top|center"
+            android:text="@string/appTitle1"
+            android:textColor="@color/logo_color"
+            android:textSize="28sp" />
+
+        <ImageView
+            android:id="@+id/imageView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:adjustViewBounds="true"
+            android:src="@drawable/splash" />
+
+        <TextView
+            android:id="@+id/appTitle2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:layout_marginBottom="30dp"
+            android:gravity="top|center"
+            android:text="@string/appTitle2"
+            android:textColor="@color/logo_color"
+            android:textSize="28sp" />
+
+        <TextView
+            android:id="@+id/appInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/appInfo" 
+            android:textColor="@color/version_color"
+            android:textSize="18sp" 
+            android:layout_gravity="center_vertical|center_horizontal"
+            android:gravity="top|center"
+            />
+
+
+
+</LinearLayout>

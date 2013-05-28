@@ -96,6 +96,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		args.put(WaypointsColumns.LOC_STATUS_COL, cv.getAsString("loc_status") );
 		
 		long waypointId = sqldb.insert(Waypoints.TABLE, null, args);
+		
+		sqldb.close();
+		
 		return waypointId;
 	}
 	
@@ -129,6 +132,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		String whereClause = " time = " + String.valueOf(location.getTime());
 		
 		int rowAffected = sqldb.update(Waypoints.TABLE, args, whereClause, null);
+		
+		sqldb.close();
 	}
 	
 	public void updateWaypointSent(Waypoints point, int sent_status) {
@@ -144,6 +149,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 							+ " AND checkin_status == " + String.valueOf(point.getCheckin_status());
 		
 		int rowAffected = sqldb.update(Waypoints.TABLE, args, whereClause, null);
+		
+		sqldb.close();
 	}
 	
 	/**
@@ -156,6 +163,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	 * @return
 	 */
 	public boolean isDuplicateKey(long time, String locStatus, int checkin_status){
+		boolean result = false;
 		String sql = "Select * FROM " + Waypoints.TABLE 
 						+ " WHERE time == " + String.valueOf(time)
 						+ " AND loc_status == " + "\"" + locStatus + "\"" 
@@ -163,8 +171,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		
 		SQLiteDatabase sqldb = getWritableDatabase();
 		Cursor cursor = sqldb.rawQuery(sql, null);
-
-		boolean result = (cursor.getCount() == 0? false : true);
+		try {
+			result = (cursor.getCount() == 0? false : true);
+		} finally {
+			cursor.close();
+			sqldb.close();
+		}
 		return result;
 	}
 	
@@ -174,13 +186,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	 * @return true if a preivously logged location; false if not.
 	 */
 	public boolean isLoggedLocation(Location loc){
+		boolean result = false;
 		String sql = "Select * FROM " + Waypoints.TABLE 
 						+ " WHERE time == " + String.valueOf(loc.getTime());
 						 
 		SQLiteDatabase sqldb = getWritableDatabase();
 		Cursor cursor = sqldb.rawQuery(sql, null);
-
-		boolean result = (cursor.getCount() == 0? false : true);
+		try {
+			result = (cursor.getCount() == 0? false : true);
+		} finally {
+			cursor.close();
+			sqldb.close();
+		}
 		return result;
 	}	
 	
@@ -290,50 +307,57 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		SQLiteDatabase db = this.getWritableDatabase();
 		Cursor cursor = db.rawQuery(selectQuery, null);
+		try {
 
-		// looping through all rows and adding to list
-		if (cursor.moveToFirst()) {
-			do {
-				Waypoints point = new Waypoints();
-
-				point.setImei(cursor.getString(cursor
-						.getColumnIndex(WaypointsColumns.IMEI_COL)));
-
-				point.setAccuracy(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.ACCURACY_COL)));
-
-				point.setAltitude(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.ALTITUDE_COL)));
-
-				point.setBearing(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.BEARING_COL)));
-
-				point.setCheckin_status(cursor.getInt(cursor
-						.getColumnIndex(WaypointsColumns.CHECKIN_STATUS_COL)));
-
-				point.setLatitude(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.LATITUDE_COL)));
-
-				point.setLongtitude(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.LONGITUDE_COL)));
-
-				point.setSpeed(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.SPEED_COL)));
-
-				point.setTime(cursor.getLong(cursor
-						.getColumnIndex(WaypointsColumns.TIME_COL)));
-
-				point.setSent_status(cursor.getInt(cursor
-						.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
-
-				point.setLoc_status(cursor.getString(cursor
-						.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
-
-
-				// Adding contact to list
-				waypointList.add(point);
-
-			} while (cursor.moveToNext());
+			// looping through all rows and adding to list
+			if (cursor.moveToFirst()) {
+				do {
+					Waypoints point = new Waypoints();
+	
+					point.setImei(cursor.getString(cursor
+							.getColumnIndex(WaypointsColumns.IMEI_COL)));
+	
+					point.setAccuracy(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.ACCURACY_COL)));
+	
+					point.setAltitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.ALTITUDE_COL)));
+	
+					point.setBearing(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.BEARING_COL)));
+	
+					point.setCheckin_status(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.CHECKIN_STATUS_COL)));
+	
+					point.setLatitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.LATITUDE_COL)));
+	
+					point.setLongtitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.LONGITUDE_COL)));
+	
+					point.setSpeed(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.SPEED_COL)));
+	
+					point.setTime(cursor.getLong(cursor
+							.getColumnIndex(WaypointsColumns.TIME_COL)));
+	
+					point.setSent_status(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
+	
+					point.setLoc_status(cursor.getString(cursor
+							.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
+	
+	
+					// Adding contact to list
+					waypointList.add(point);
+	
+				} while (cursor.moveToNext());
+			}
+			
+		} finally {
+			// to assure that the SQLite does no leaked.
+			cursor.close();
+			db.close();
 		}
 
 		// return waypoint list
@@ -376,36 +400,43 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		Cursor cursor = db.rawQuery(selectQuery, null);
 
-		// looping through all rows and adding to list
-		if (cursor.moveToFirst()) {
-			do {
-				Waypoints point = new Waypoints();
-				point.setImei(cursor.getString(cursor
-						.getColumnIndex(WaypointsColumns.IMEI_COL)));
-				point.setAccuracy(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.ACCURACY_COL)));
-				point.setAltitude(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.ALTITUDE_COL)));
-				point.setBearing(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.BEARING_COL)));
-				point.setCheckin_status(cursor.getInt(cursor
-						.getColumnIndex(WaypointsColumns.CHECKIN_STATUS_COL)));
-				point.setLatitude(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.LATITUDE_COL)));
-				point.setLongtitude(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.LONGITUDE_COL)));
-				point.setSpeed(cursor.getFloat(cursor
-						.getColumnIndex(WaypointsColumns.SPEED_COL)));
-				point.setTime(cursor.getLong(cursor
-						.getColumnIndex(WaypointsColumns.TIME_COL)));
-				point.setSent_status(cursor.getInt(cursor
-						.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
-				point.setLoc_status(cursor.getString(cursor
-						.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
-				// Adding contact to list
-				waypointList.add(point);
-			} while (cursor.moveToNext());
+		try {		
+			// looping through all rows and adding to list
+			if (cursor.moveToFirst()) {
+				do {
+					Waypoints point = new Waypoints();
+					point.setImei(cursor.getString(cursor
+							.getColumnIndex(WaypointsColumns.IMEI_COL)));
+					point.setAccuracy(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.ACCURACY_COL)));
+					point.setAltitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.ALTITUDE_COL)));
+					point.setBearing(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.BEARING_COL)));
+					point.setCheckin_status(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.CHECKIN_STATUS_COL)));
+					point.setLatitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.LATITUDE_COL)));
+					point.setLongtitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.LONGITUDE_COL)));
+					point.setSpeed(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.SPEED_COL)));
+					point.setTime(cursor.getLong(cursor
+							.getColumnIndex(WaypointsColumns.TIME_COL)));
+					point.setSent_status(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
+					point.setLoc_status(cursor.getString(cursor
+							.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
+					// Adding contact to list
+					waypointList.add(point);
+				} while (cursor.moveToNext());
+			}
+		} finally {
+			// To gurantee that the SQLite does not leaked.
+			cursor.close();
+			db.close();
 		}
+
 		// return waypoint list
 		return waypointList;
 	}
