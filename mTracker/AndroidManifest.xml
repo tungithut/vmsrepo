@@ -69,9 +69,9 @@
         
         <service android:name="vn.com.mobifone.mtracker.VMSLoggingService">
             <!-- To make this service available to other apps as well -->
-            <!-- <intent-filter>
+            <intent-filter>
 				<action android:name="vn.com.mobifone.mtracker.VMSLoggingService" />
-			</intent-filter> -->
+			</intent-filter>
         </service>
         
         <activity android:name="vn.com.mobifone.mtracker.VMSSettingsActivity"
