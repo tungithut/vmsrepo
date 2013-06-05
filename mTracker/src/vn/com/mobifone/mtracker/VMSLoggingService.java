@@ -960,7 +960,8 @@ public class VMSLoggingService extends Service implements IActionListener
         	cv.put("loc_status", Session.getLocStatus());
         	//Session.setAllowDescription(true);
         	
-			new VMSLogger().LogToDatabase(loc, cv, getApplicationContext());
+			//new VMSLogger().LogToDatabase(loc, cv, getApplicationContext());
+        	new VMSLogger().LogToDatabase2(loc, cv, getApplicationContext());//Added route implements.
 			
 			// if we've come from 'stop' process, at this point we have successfully write on the DB,
 			// we need to stop the logging process.

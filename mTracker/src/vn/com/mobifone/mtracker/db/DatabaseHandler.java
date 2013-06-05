@@ -1,12 +1,16 @@
 package vn.com.mobifone.mtracker.db;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import vn.com.mobifone.mtracker.common.Session;
+import vn.com.mobifone.mtracker.common.Utilities;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -36,6 +40,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+		db.execSQL(Routes.CREATE_STATEMENT);
 		db.execSQL(Waypoints.CREATE_STATEMENT);
 	}
 
@@ -62,9 +67,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	public long insertWaypoint(Location location, ContentValues cv) {
 
 		int checkin_status = 0;
+		long routeId = 0;
 		
 		try {
 			checkin_status = Integer.parseInt(cv.getAsString("checkin_status"));
+			routeId = Long.parseLong(cv.getAsString("routeId"));
+			
 		} catch (Exception e)  {
 			e.printStackTrace();
 		}
@@ -87,6 +95,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		args.put(WaypointsColumns.BEARING_COL, location.getBearing());
 		args.put(WaypointsColumns.CHECKIN_STATUS_COL, checkin_status);
 		
+		// New implement:
+		args.put(WaypointsColumns.ROUTE_ID_COL, routeId);
+		
 		if (cv.getAsInteger("sent_status") != null){
 			args.put(WaypointsColumns.SENT_STATUS_COL, cv.getAsInteger("sent_status"));
 		} else {
@@ -96,6 +107,10 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		args.put(WaypointsColumns.LOC_STATUS_COL, cv.getAsString("loc_status") );
 		
 		long waypointId = sqldb.insert(Waypoints.TABLE, null, args);
+		
+		if (waypointId == -1){
+			Utilities.LogError("insertWaypoint.error while insert" , new Exception(""));
+		}
 		
 		sqldb.close();
 		
@@ -259,19 +274,19 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	 */
 	
 	/**
-	 * Return the total miliseconds number from 1970 to zero hour of today (using Vietnam time zone)
+	 * Return the total mili seconds number from 1970 to zero hour of today (using Vietnam time zone)
 	 * @return
 	 */
 	public String getTimeFromZerohourToday(){
+		
 		TimeZone tz =   TimeZone.getTimeZone("Asia/Bangkok");
-		Calendar cal = Calendar.getInstance();
-		// set to our current time zone.
-		cal.setTimeZone(tz);
+		Calendar cal = Calendar.getInstance(tz);
 		
 		// reset to today's zero hour
-		cal.set(Calendar.HOUR, 0);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);  
 		
 		return String.valueOf(cal.getTimeInMillis());
 	}
@@ -289,19 +304,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		String selectQuery = "";
 		
 		String today0hr = getTimeFromZerohourToday();
+		//today0hr = "0";
 		
 		if (with_sent_status) {
 			// Get all waypoints logged today && not successfully sent yet
 			selectQuery = "SELECT  * FROM " + Waypoints.TABLE
-					+ " WHERE TIME < " + System.currentTimeMillis()
-					+ " AND TIME >= " + today0hr 
+					//+ " WHERE TIME < " + System.currentTimeMillis()
+					+ " WHERE TIME >= " + today0hr 
 					+ " AND SENT_STATUS != 1"
 					+ " ORDER BY TIME";
 		} else {
 			// Get all waypoints logged today.
 			selectQuery = "SELECT  * FROM " + Waypoints.TABLE
-					+ " WHERE TIME < " + System.currentTimeMillis()
-					+ " AND TIME >= " + today0hr
+					//+ " WHERE TIME < " + System.currentTimeMillis()
+					+ " WHERE TIME >= " + today0hr
 					+ " ORDER BY TIME";
 		}
 
@@ -346,7 +362,101 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	
 					point.setLoc_status(cursor.getString(cursor
 							.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
+					
+					point.setRouteId(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.ROUTE_ID_COL)));
 	
+					// Adding contact to list
+					waypointList.add(point);
+	
+				} while (cursor.moveToNext());
+			}
+			
+		} finally {
+			// to assure that the SQLite does no leaked.
+			cursor.close();
+			db.close();
+		}
+
+		// return waypoint list
+		return waypointList;
+	}
+	
+	/**
+	 * Get today's waypoints by given route id
+	 * @param with_sent_status
+	 * @return
+	 */
+	public List<Waypoints> getWaypointsByRoute(boolean with_sent_status, long routeId) {
+
+		List<Waypoints> waypointList = new ArrayList<Waypoints>();
+
+		// Select All Query
+		String selectQuery = "";
+		
+		String today0hr = getTimeFromZerohourToday();
+		
+		if (with_sent_status) {
+			// Get all waypoints logged today && not successfully sent yet
+			selectQuery = "SELECT  * FROM " + Waypoints.TABLE
+					+ " WHERE TIME < " + System.currentTimeMillis()
+					+ " AND TIME >= " + today0hr 
+					+ " AND SENT_STATUS != 1"
+					+ " AND ROUTE_ID == " + routeId
+					+ " ORDER BY TIME";
+		} else {
+			// Get all waypoints logged today.
+			selectQuery = "SELECT  * FROM " + Waypoints.TABLE
+					+ " WHERE TIME < " + System.currentTimeMillis()
+					+ " AND TIME >= " + today0hr
+					+ " AND ROUTE_ID == " + routeId
+					+ " ORDER BY TIME";
+		}
+
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		try {
+
+			// looping through all rows and adding to list
+			if (cursor.moveToFirst()) {
+				do {
+					Waypoints point = new Waypoints();
+	
+					point.setImei(cursor.getString(cursor
+							.getColumnIndex(WaypointsColumns.IMEI_COL)));
+	
+					point.setAccuracy(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.ACCURACY_COL)));
+	
+					point.setAltitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.ALTITUDE_COL)));
+	
+					point.setBearing(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.BEARING_COL)));
+	
+					point.setCheckin_status(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.CHECKIN_STATUS_COL)));
+	
+					point.setLatitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.LATITUDE_COL)));
+	
+					point.setLongtitude(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.LONGITUDE_COL)));
+	
+					point.setSpeed(cursor.getFloat(cursor
+							.getColumnIndex(WaypointsColumns.SPEED_COL)));
+	
+					point.setTime(cursor.getLong(cursor
+							.getColumnIndex(WaypointsColumns.TIME_COL)));
+	
+					point.setSent_status(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
+	
+					point.setLoc_status(cursor.getString(cursor
+							.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
+					
+					point.setRouteId(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.ROUTE_ID_COL)));
 	
 					// Adding contact to list
 					waypointList.add(point);
@@ -427,6 +537,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 							.getColumnIndex(WaypointsColumns.SENT_STATUS_COL)));
 					point.setLoc_status(cursor.getString(cursor
 							.getColumnIndex(WaypointsColumns.LOC_STATUS_COL)));
+					point.setRouteId(cursor.getInt(cursor
+							.getColumnIndex(WaypointsColumns.ROUTE_ID_COL)));
 					// Adding contact to list
 					waypointList.add(point);
 				} while (cursor.moveToNext());
@@ -475,7 +587,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	/**
 	 * This table contains waypoints.
 	 * 
-	 * @author rene
+	 * @author 
 	 */
 	public static final class Waypoints extends WaypointsColumns implements
 			android.provider.BaseColumns {
@@ -488,16 +600,20 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ WaypointsColumns.LATITUDE_TYPE + "," + " "
 				+ WaypointsColumns.LONGITUDE_COL + " "
 				+ WaypointsColumns.LONGITUDE_TYPE + "," + " "
-				+ WaypointsColumns.TIME_COL + " " + WaypointsColumns.TIME_TYPE
-				+ "," + " " + WaypointsColumns.SPEED_COL + " "
+				+ WaypointsColumns.TIME_COL + " " 
+				+ WaypointsColumns.TIME_TYPE + "," + " " 
+				+ WaypointsColumns.SPEED_COL + " "
 				+ WaypointsColumns.SPEED_TYPE + "," + " "
-				+ WaypointsColumns.IMEI_COL + " " + WaypointsColumns.IMEI_TYPE
-				+ "," + " " + WaypointsColumns.ACCURACY_COL + " "
+				+ WaypointsColumns.IMEI_COL + " " 
+				+ WaypointsColumns.IMEI_TYPE + "," + " " 
+				+ WaypointsColumns.ACCURACY_COL + " "
 				+ WaypointsColumns.ACCURACY_TYPE + "," + " "
 				+ WaypointsColumns.ALTITUDE_COL + " "
 				+ WaypointsColumns.ALTITUDE_TYPE + "," + " "
 				+ WaypointsColumns.BEARING_COL + " "
 				+ WaypointsColumns.BEARING_TYPE + "," + " "
+				+ WaypointsColumns.ROUTE_ID_COL + " "
+				+ WaypointsColumns.ROUTE_ID_TYPE + "," + " "
 				+ WaypointsColumns.CHECKIN_STATUS_COL + " "
 				+ WaypointsColumns.CHECKIN_STATUS_TYPE + "," + " "
 				+ WaypointsColumns.LOC_STATUS_COL + " "
@@ -509,7 +625,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	/**
 	 * Columns from the waypoints table.
 	 * 
-	 * @author rene
+	 * @author 
 	 */
 	public static class WaypointsColumns {
 
@@ -535,6 +651,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		public static final String SENT_STATUS_COL = "sent_status";
 		/** the loc status (start || stop) */
 		public static final String LOC_STATUS_COL = "loc_status";
+		/** the route id */
+		public static final String ROUTE_ID_COL = "route_id";
 		
 		static final String LOC_STATUS_TYPE = "TEXT NOT NULL";
 		static final String IMEI_TYPE = "TEXT NOT NULL";
@@ -549,8 +667,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		static final String CHECKIN_STATUS_TYPE = "INTEGER";
 		static final String SENT_STATUS_TYPE = "INTEGER";
 		static final String _ID_TYPE = "INTEGER PRIMARY KEY AUTOINCREMENT";
+		static final String ROUTE_ID_TYPE = "INTEGER";
 
-		// properties:
+		// Data object's properties:
 		private String imei;
 		private float latitude;
 		private float longtitude;
@@ -562,7 +681,16 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		private int checkin_status;
 		private int sent_status;
 		private String loc_status;
+		private long routeId;
 		
+		public long getRouteId() {
+			return routeId;
+		}
+
+		public void setRouteId(long routeId) {
+			this.routeId = routeId;
+		}
+
 		public String getLoc_status() {
 			return loc_status;
 		}
@@ -653,5 +781,152 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		}
 
 	}
+	
+	/**
+	 * This table contains Routes.
+	 * 
+	 * @author 
+	 */
+	public static final class Routes extends RouteColumns implements
+			android.provider.BaseColumns {
+		/** The name of this table, routes */
+		public static final String TABLE = "routes";
+		static final String CREATE_STATEMENT = "CREATE TABLE "
+				+ Routes.TABLE + "(" + " " 
+				+ Routes.ID_COL + " "
+				+ Routes._ID_TYPE + "," + " "
+				+ Routes.TIME_COL + " " 
+				+ Routes.TIME_TYPE + ");" ;
+	}
+
+	/**
+	 * Columns from the Route table.
+	 * 
+	 * @author 
+	 */
+	public static class RouteColumns {
+		
+		/** The id col */
+		public static final String ID_COL = "_id";
+		
+		/** The recorded time */
+		public static final String TIME_COL = "time";
+		
+		static final String _ID_TYPE = "INTEGER PRIMARY KEY AUTOINCREMENT";
+		static final String TIME_TYPE = "INTEGER NOT NULL";
+		
+		/** Data object's properties **/
+		private long routeId;
+		private long time;
+
+		/** Getter and Setter functions for properties **/
+		public long getTime() {
+			return time;
+		}
+
+		public void setTime(long time) {
+			this.time = time;
+		}
+
+		public long getRouteId() {
+			return routeId;
+		}
+
+		public void setRouteId(long routeId) {
+			this.routeId = routeId;
+		}
+	}
+	
+	/**
+	 * When user click on 'start' button, this time is to create a new route, and this function is called to insert a new ID to DB
+	 * @param location
+	 * @param cv
+	 * @return
+	 */
+	public long insertNewRoute(Location location) {
+		
+		SQLiteDatabase sqldb = getWritableDatabase();
+
+		ContentValues args = new ContentValues();
+		
+		args.put(Routes.TIME_COL, location.getTime());
+		
+		long routeId = sqldb.insert(Routes.TABLE, null, args);
+		
+		if (routeId == -1){
+			Utilities.LogError("insertNewRoute.error while insert" , new Exception(""));
+		}
+		
+		sqldb.close();
+		
+		return routeId;
+	}
+	
+	/**
+	 * Get the latest route id from Route table.
+	 * @return the latest route id
+	 */
+	public long getLastestRouteId() {
+
+		long lastestId = 0;
+		
+		// Select All Query
+		String selectQuery = "SELECT MAX(_ID) AS LATEST_ID FROM " + Routes.TABLE;
+		
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		
+		try {
+			// looping through all rows and adding to list
+			if (cursor.moveToFirst()) {
+				do {				
+					lastestId = cursor.getLong(cursor.getColumnIndex("LATEST_ID"));
+					
+				} while (cursor.moveToNext());
+			}
+		} finally {
+			// to assure that the SQLite does no leaked.
+			cursor.close();
+			db.close();
+		}
+		
+		return lastestId;
+	}
+	
+	/**
+	 * Get the list of today's route id from Route table (Reversed order returned)
+	 * @return the latest route id
+	 */
+	public List<Long> getListOfRouteId() {
+		
+		List<Long> listOfRouteId = new ArrayList<Long>();
+		String today0hr = getTimeFromZerohourToday();
+		
+		// Select All Query
+		String selectQuery = 	"SELECT * FROM " + Routes.TABLE
+								+ " WHERE TIME >= " + today0hr
+								+ " ORDER BY TIME DESC";
+		
+		SQLiteDatabase db = this.getWritableDatabase();
+		Cursor cursor = db.rawQuery(selectQuery, null);
+		
+		try {
+			// looping through all rows and adding to list
+			if (cursor.moveToFirst()) {
+				do {				
+					long routeId = cursor.getLong(cursor.getColumnIndex("_id"));
+					listOfRouteId.add(routeId);
+					
+				} while (cursor.moveToNext());
+			}
+		} finally {
+			// to assure that the SQLite does no leaked.
+			cursor.close();
+			db.close();
+		}
+		
+		return listOfRouteId;
+	}
+
 
 }

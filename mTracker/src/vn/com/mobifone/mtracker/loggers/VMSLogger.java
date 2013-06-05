@@ -36,6 +36,7 @@ public class VMSLogger implements IFileLogger
 
     /**
      * This function will insert the given location and additional status (checkin/start/stop) into Database.
+     * (orignal version, work fine without route implementatin)
      * @param loc
      * @param cv
      * @param context
@@ -46,56 +47,41 @@ public class VMSLogger implements IFileLogger
     	handler.insertWaypoint(loc, cv);
     }
     
-    /*public void Write(Location loc, ContentValues cv, Context context) throws Exception
-    {
-    
-        
-        String server = AppSettings.getVmsServer();
-        int port = Integer.parseInt(AppSettings.getVmsServerPort());
-        String path = AppSettings.getVmsServerPath();
-        
-        
-    	String server = cv.getAsString("server_addr");	//i.e:130.30.31.138
-    	int port = Integer.parseInt(cv.getAsString("port"));				//i.e:8080
-    	String path = cv.getAsString("path");			//i.e: /gprmc2/Data
-    	String imei = cv.getAsString("deviceId");	//imei number
-    	int checkin_status = cv.getAsInteger("checkin_status");
+    /**
+     * New version for Route implementation.
+     * @param loc
+     * @param cv
+     * @param context
+     */
+    public void LogToDatabase2(Location loc, ContentValues cv, Context context){
     	
-        
-        IActionListener al = new IActionListener()
-        {
-            @Override
-            public void OnComplete()
-            {
-            }
-
-            @Override
-            public void OnFailure()
-            {
-            }
-        };
-
-        //OpenGTSClient openGTSClient = new OpenGTSClient(server, port, path, al, null);
-    	VMSClient vClient = new VMSClient(server, port, path, al, context);
-    	//vClient.sendHTTP(deviceId, loc);
-    	//Waypoints pointList = new 
-    	//vClient.sendHTTP_VMS();
-    	
+    	long latestId = 0;
     	DatabaseHandler handler = new DatabaseHandler(context);
-    	// 1.get the list of waypoints that we have failed in sending to VMS server last time.
-    	List<Waypoints> pointList = handler.getWaypoints(true);
-    	// 2.sending to the VMS server again:
-    	if (!pointList.isEmpty()){
-    		vClient.sendHTTP_VMS(pointList);
-    	}
-    	// 3.sending this current location the VMS server for the first time:
-    	//String imei = "12345678910";
     	
-    	int retCode = vClient.sendHTTP_VMS(imei, loc,checkin_status);
-    	// 4.now update the current location to the DB:
-
-    }*/
-
+    	//Get the latest route ID:
+    	if ("start".equals(cv.getAsString("loc_status"))){
+    		// This call comes from on click 'START' button,
+    		//	we need to insert new record to ROUTE table.
+    		latestId = handler.insertNewRoute(loc);
+    		
+    	} else if ("1".equals(cv.getAsString("checkin_status"))
+    			&& !"stop".equals(cv.getAsString("loc_status"))) {
+    		// This call comes from on click 'CHECKIN' button,
+    		//	this location point won't belonged to any routes.
+    		//	with the condition that the check-in not a STOP point.
+    		latestId = 0;//Anonymous route.
+    		
+    	} else {
+    		// This call comes from other scenarios, just return the latest id:
+    		//	(STOP point might come here)
+    		latestId = handler.getLastestRouteId();
+    	}
+    	    	
+    	//Log into the DB this new obtained location (with route just obtained):
+    	cv.put("routeId", latestId);
+    	handler.insertWaypoint(loc, cv);
+    }
+    
     /**
      * This function will read data from DB then send to VMS server.
      * This function is called when auto send event fired after every %AutoSendDelay% time.

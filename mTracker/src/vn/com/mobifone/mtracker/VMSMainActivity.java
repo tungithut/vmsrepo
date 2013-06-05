@@ -72,6 +72,33 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 	private static Intent serviceIntent;
     private VMSLoggingService loggingService = null;
     final int MONITOR_FREQ = 5000*60;//5 min sampling.
+    final int MAX_ROUTE_VISIBLED = 3;//number of route is display on the screen.
+    
+    // Color code to display the route on the Map
+    private static String[] colorCodes = {	"#4d2177",
+						    		"#9cb426",
+						    		"#b48526",
+						    		"#b43f26",
+						    		"#269cb5",
+						    		"#b93131",
+						    		"#925a17",
+						    		"#c5e9b4",
+						    		"#ffdbac",
+						    		"#a16175",
+						    		"#63b6ab",
+						    		"#f0ff00",
+						    		"#ffffff",
+						    		"#a69d86",
+						    		"#440700",
+						    		"#20391e",
+						    		"#8256a4",
+						    		"#025076",
+						    		"#794044",
+						    		"#025076",
+						    		"#78724d",
+						    		"#d6b6e6",
+						    		"#790ead",
+						    		"#5cb8ff"};
 	
 	/**
      * Provides a connection to the GPS Logging Service
@@ -164,7 +191,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
  			// Enabling MyLocation Layer of Google Map
  			googleMap.setMyLocationEnabled(true);
  			//Location location = getCurrentLocation();//display current location
- 			drawRoute();
+ 			drawRoute2();
  			//showVisitPlaceDB();
  		}
  	}
@@ -277,8 +304,10 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 		LatLng firstPos;
 		for (Waypoints point : list){
 			
-			if (prev_point != null 
-					&& (point.getTime() - prev_point.getTime() > this.MONITOR_FREQ)){
+			/*if (prev_point != null 
+					&& (point.getTime() - prev_point.getTime() > this.MONITOR_FREQ))*/
+			if (prev_point != null)
+			{
 				//this is 2nd point go on && sampling time is enough to save the point:
 				double latitude = point.getLatitude();
 				double longitude = point.getLongtitude();
@@ -316,6 +345,78 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
 					.fromResource(R.drawable.route_end)));
 		}
 				
+	}
+	
+	/**
+	 * New draw route function which used the route_id implementation
+	 * (3/6/2013)
+	 */
+	private void drawRoute2(){
+		
+		
+		DatabaseHandler db = new DatabaseHandler(getApplicationContext());
+		
+		//long currentRouteId = db.getLastestRouteId();
+		//List<Waypoints> list = db.getWaypointsByRoute(false, currentRouteId);
+		
+		List<Long> listId = db.getListOfRouteId();
+		int max_loop = (listId.size() > MAX_ROUTE_VISIBLED) ? MAX_ROUTE_VISIBLED : listId.size();
+		
+		// Loop through all visible routes:
+		for (int i = (max_loop - 1); i >= 0; i--){
+			
+			long id = listId.get(i);
+			List<LatLng> route = new ArrayList<LatLng>();
+			
+			List<Waypoints> waypointlist = db.getWaypointsByRoute(false, id);
+			
+			for (Waypoints point : waypointlist){
+				
+				double latitude = point.getLatitude();
+				double longitude = point.getLongtitude();
+				LatLng latLng = new LatLng(latitude, longitude);
+				
+				route.add(latLng);
+			}
+		   
+			// Draw the route on the Map screen:
+			PolylineOptions polOption = new PolylineOptions();
+			polOption.addAll(route);
+			
+			// Add the option for the polygon line, used for this route:
+			int cCode = Color.parseColor(colorCodes[max_loop - i - 1]);
+			googleMap.addPolyline(polOption.width(8).color(cCode));
+			
+			// Drawing the route on the Map:
+			if (!route.isEmpty()){
+				//Put a Start Market to the beginning of the route:
+				Marker place = googleMap.addMarker(new MarkerOptions()
+				.position(route.get(0))
+				.title("Start")
+				.icon(BitmapDescriptorFactory
+						.fromResource(R.drawable.route_start)));
+				
+				//a Marker at the end of route:
+				place = googleMap.addMarker(new MarkerOptions()
+				.position(route.get(route.size()-1))
+				.title("End")
+				.icon(BitmapDescriptorFactory
+						.fromResource(R.drawable.route_end)));
+				
+				// Put a step pin pos to each step on the route
+				for (int index=0; index < route.size(); index ++){
+					if (index != 0 && index != (route.size()-1)){
+						place = googleMap.addMarker(new MarkerOptions()
+						.position(route.get(index))
+						.title(String.valueOf(index))
+						.icon(BitmapDescriptorFactory
+								.fromResource(R.drawable.step_pin_pos)));
+					}
+				}
+				
+			}
+		}
+			
 	}
 	
 	/**
@@ -725,7 +826,7 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
             Session.setSinglePointMode(false);
         }*/
     	
-    	drawRoute();
+    	drawRoute2();
     	showVisitPlaceDB();
     	// Add an Mark to the current location:
     	// No need to display current location pin, 
