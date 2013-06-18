@@ -1,6 +1,8 @@
 
 package vn.com.mobifone.mtracker;
 
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+
 import vn.com.mobifone.mtracker.common.Utilities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -10,9 +12,10 @@ import android.os.Handler;
 import android.preference.*;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.util.Log;
-import android.view.MenuItem;
+//import android.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem;
 
-public class VMSSettingsActivity extends PreferenceActivity
+public class VMSSettingsActivity extends SherlockPreferenceActivity
 {
 
     private final Handler handler = new Handler();
@@ -25,7 +28,7 @@ public class VMSSettingsActivity extends PreferenceActivity
         super.onCreate(savedInstanceState);
 
         // enable the home button so you can go back to the main screen
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         addPreferencesFromResource(R.xml.settings);
 

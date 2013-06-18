@@ -29,6 +29,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -54,6 +55,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.support.v4.app.FragmentActivity;
 import android.telephony.TelephonyManager;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -66,7 +68,8 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-public class VMSMainActivity extends Activity implements LocationListener, OnCheckedChangeListener {
+public class VMSMainActivity extends FragmentActivity 
+	implements LocationListener, OnCheckedChangeListener {
 
 	private GoogleMap googleMap;
 	private static Intent serviceIntent;
@@ -184,8 +187,15 @@ public class VMSMainActivity extends Activity implements LocationListener, OnChe
  			dialog.show();
  		} else { 
  			// Getting reference to the MapFragment of activity_main.xml
- 			MapFragment fm = (MapFragment) 
+ 			
+ 			//API above level 9
+ 			/*MapFragment fm = (MapFragment) 
  					getFragmentManager().findFragmentById(R.id.map);
+ 			*/
+ 			
+ 			SupportMapFragment fm = (SupportMapFragment) 
+ 					getSupportFragmentManager().findFragmentById(R.id.map);
+ 			
  			// Getting GoogleMap object from the fragment
  			googleMap = fm.getMap();
  			// Enabling MyLocation Layer of Google Map
