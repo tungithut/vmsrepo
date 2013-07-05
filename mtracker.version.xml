@@ -1,0 +1,9 @@
+<maintag>
+	<version>1.2.1</version>
+	<message>Thank's for your time for testing this solution with us!</message>
+	<event></event>
+	<preferCellTowner>false</preferCellTowner>
+	<keepFixGPS>false</keepFixGPS>
+	<accuracyBeforeLogging>75</accuracyBeforeLogging>
+	<timeIntervalForAccuracy>1</timeIntervalForAccuracy>
+</maintag>

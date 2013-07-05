@@ -283,6 +283,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		Calendar cal = Calendar.getInstance(tz);
 		
 		// reset to today's zero hour
+		cal.add(Calendar.DATE,  - 1); // from last day to today.
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);

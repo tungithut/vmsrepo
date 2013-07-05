@@ -48,7 +48,8 @@ public class Session extends Application
     private static boolean isStartStop = false;
     private static boolean checkinWithoutRoute = false;//'true' if user click on 'checkin' without any 'start' action. Means that this 'checkin' point not belong to any route.
     private static boolean isLaunched = false;//default: not launched yet, for animation on splash screen determination
-
+    private static String appInfo = "Version %s 2013.\n Developed by VMS IT Department";
+    
     /*public static boolean isSinglePointMode()
     {
         return isSinglePointMode;
@@ -63,6 +64,14 @@ public class Session extends Application
 
     public static boolean isLaunched() {
 		return isLaunched;
+	}
+
+	public static String getAppInfo() {
+		return appInfo;
+	}
+
+	public static void setAppInfo(String appInfo) {
+		Session.appInfo = appInfo;
 	}
 
 	public static void setLaunched(boolean isLaunched) {

@@ -277,8 +277,8 @@ public class Utilities {
         AppSettings.setShowInNotificationBar(prefs.getBoolean(
                 "show_notification", true));
 
-        AppSettings.setPreferCellTower(prefs.getBoolean("prefer_celltower",
-                false));
+        /*AppSettings.setPreferCellTower(prefs.getBoolean("prefer_celltower",
+                false));*/
 
 
         String minimumDistanceString = prefs.getString(
@@ -294,7 +294,7 @@ public class Utilities {
             AppSettings.setMinimumDistanceInMeters(0);
         }
 
-        String minimumAccuracyString = prefs.getString(
+/*        String minimumAccuracyString = prefs.getString(
                 "accuracy_before_logging", "0");
 
         if (minimumAccuracyString != null && minimumAccuracyString.length() > 0)
@@ -305,7 +305,7 @@ public class Utilities {
         else
         {
             AppSettings.setMinimumAccuracyInMeters(0);
-        }
+        }*/
 
         /*if (AppSettings.shouldUseImperial())
         {
@@ -330,10 +330,10 @@ public class Utilities {
             AppSettings.setMinimumSeconds(60);
         }
 
-        AppSettings.setKeepFix(prefs.getBoolean("keep_fix",
-                false));
+        /*AppSettings.setKeepFix(prefs.getBoolean("keep_fix",
+                false));*/
 
-        String retryIntervalString = prefs.getString("retry_time",
+/*        String retryIntervalString = prefs.getString("retry_time",
                 "60");
 
         if (retryIntervalString != null && retryIntervalString.length() > 0)
@@ -344,7 +344,7 @@ public class Utilities {
         else
         {
              AppSettings.setRetryInterval(60);
-        }
+        }*/
 
         /*AppSettings.setNewFileCreation(prefs.getString("new_file_creation",
                 "onceaday"));
@@ -395,9 +395,9 @@ public class Utilities {
         AppSettings.setOpenGTSEnabled(prefs.getBoolean("opengts_enabled", false));
         AppSettings.setAutoOpenGTSEnabled(prefs.getBoolean("autoopengts_enabled", false));*/
         
-        AppSettings.setVmsServer(prefs.getString("vms_server", ""));
-        AppSettings.setVmsServerPort(prefs.getString("vms_server_port", ""));
-        AppSettings.setVmsServerPath(prefs.getString("vms_server_path", ""));
+        AppSettings.setVmsServer(prefs.getString("vms_server", "123.30.31.138"));
+        AppSettings.setVmsServerPort(prefs.getString("vms_server_port", "8080"));
+        AppSettings.setVmsServerPath(prefs.getString("vms_server_path", "/GTS/eventdata"));
         
         
         /*AppSettings.setOpenGTSDeviceId(prefs.getString("opengts_device_id", ""));

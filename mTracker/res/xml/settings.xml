@@ -21,24 +21,27 @@
 	                            android:title="@string/vms_server"
 	                            android:inputType="textUri"
 	                            android:summary="@string/vms_server_summary"
-	                            android:dialogTitle="@string/vms_server"/>
+	                            android:dialogTitle="@string/vms_server"
+	                            android:defaultValue="@string/default_vms_server_ip"/>
 	        
 	        <EditTextPreference android:key="vms_server_port"
 	                            android:title="@string/vms_server_port"
 	                            android:inputType="number"
-	                            android:dialogTitle="@string/vms_server_port"/>
+	                            android:dialogTitle="@string/vms_server_port"
+	                            android:defaultValue="@string/default_vms_server_port"/>
 	        
 	        <EditTextPreference android:key="vms_server_path"
 	                            android:title="@string/vms_server_path"
 	                            android:inputType="textUri"
 	                            android:summary="@string/vms_server_path_summary"
-	                            android:dialogTitle="@string/vms_server_path"/>	        
+	                            android:dialogTitle="@string/vms_server_path"
+	                            android:defaultValue="@string/default_vms_server_path"/>	        
     </PreferenceCategory>
     
     
-    <CheckBoxPreference android:key="prefer_celltower"
+    <!-- <CheckBoxPreference android:key="prefer_celltower"
                                 android:summary="@string/prefer_celltower_summary"
-                                android:title="@string/prefer_celltower_title"/>
+                                android:title="@string/prefer_celltower_title"/> -->
 
     <EditTextPreference android:key="time_before_logging"
                                 android:title="@string/time_before_logging_title"
@@ -47,9 +50,9 @@
                                 android:numeric="integer" android:maxLength="4"
                                 android:hint="@string/time_before_logging_hint"/>
 
-    <CheckBoxPreference android:key="keep_fix"
+    <!-- <CheckBoxPreference android:key="keep_fix"
                                 android:summary="@string/keep_fix_summary"
-                                android:title="@string/keep_fix_title"/>
+                                android:title="@string/keep_fix_title"/> -->
 
 
     <EditTextPreference android:key="distance_before_logging"
@@ -60,19 +63,19 @@
                                 android:hint="@string/settings_enter_meters"/>
 
 
-    <EditTextPreference android:key="accuracy_before_logging"
+    <!-- <EditTextPreference android:key="accuracy_before_logging"
                                 android:title="@string/accuracy_before_logging_title"
                                 android:summary="@string/accuracy_before_logging_summary"
                                 android:dialogTitle="@string/settings_accuracy_in_meters"
                                 android:numeric="integer" android:maxLength="4"
-                                android:hint="@string/settings_enter_meters"/>
+                                android:hint="@string/settings_enter_meters"/> -->
 
-	<EditTextPreference android:key="retry_time"
+	<!-- <EditTextPreference android:key="retry_time"
                                 android:title="@string/retry_time_title"
                                 android:summary="@string/retry_time_summary"
                                 android:dialogTitle="@string/retry_time_dialog_title"
                                 android:numeric="integer" android:maxLength="4"
-                                android:hint="@string/retry_time_hint"/>
+                                android:hint="@string/retry_time_hint"/> -->
     
     <Preference android:title="@string/enabledisablegps_title"
                     android:summary="@string/enabledisablegps_summary" android:key="enableDisableGps"

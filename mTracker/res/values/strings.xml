@@ -25,11 +25,17 @@
     <string name="vms_start_message">Start logging...successfully</string>
     <string name="vms_checkin_message">Check-in successfully</string>
     
+    <string name="default_vms_server_ip">123.30.31.138</string>
+    <string name="default_vms_server_port">8080</string>
+    <string name="default_vms_server_path">/GTS/eventdata</string>
+    
+    <string name="connection_error">Unable to load content. Check your network connection.</string>
+    <string name="xml_error">Invalid VERSION_URL XML file.</string>
     
     
     
     <!-- original below -->
-    <string name="settings_screen_name">VMSTracker Settings</string>
+    <string name="settings_screen_name">Settings</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="could_not_write_to_file">Could not write to file</string>

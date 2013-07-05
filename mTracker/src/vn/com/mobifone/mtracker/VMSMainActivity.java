@@ -40,6 +40,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
@@ -48,9 +49,11 @@ import android.os.IBinder;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
@@ -163,7 +166,7 @@ public class VMSMainActivity extends FragmentActivity
 		
 		StartAndBindService();
 		
- 		// Synchnronize logged data with VMS server:
+ 		// Synchronize logged data with VMS server:
  		//	This will send all logged data which have 'sent_staus' not '1' to VMS server.
  		this.synchLoggedDataToVMS();
  		
@@ -175,7 +178,7 @@ public class VMSMainActivity extends FragmentActivity
 		btnStop.setEnabled(false);
 		
 		// Display Google Map
-    	// Getting Google Play service availablity ?!
+    	// Getting Google Play service availability ?!
  		int status = GooglePlayServicesUtil
  				.isGooglePlayServicesAvailable(getBaseContext());
  		// Showing status
@@ -203,6 +206,8 @@ public class VMSMainActivity extends FragmentActivity
  			//Location location = getCurrentLocation();//display current location
  			drawRoute2();
  			//showVisitPlaceDB();
+ 			prepareFastLocationFix(this);
+ 			getLocationAndDisplayOnMap();
  		}
  	}
 	
@@ -225,7 +230,7 @@ public class VMSMainActivity extends FragmentActivity
 				iconId = R.drawable.route_start;
 			} else if ("stop".equals(status)) {
 				iconId = R.drawable.route_end;
-			} else {
+			}  else {
 				iconId = R.drawable.map_marker_fav_place;
 			}
 			
@@ -303,7 +308,7 @@ public class VMSMainActivity extends FragmentActivity
 	 * This function draws Routes accross TODAY logging points from DB
 	 * @param location
 	 */
-	private void drawRoute(){
+	/*private void drawRoute(){
 		
 		List<LatLng> route = new ArrayList<LatLng>();
 		
@@ -314,8 +319,8 @@ public class VMSMainActivity extends FragmentActivity
 		LatLng firstPos;
 		for (Waypoints point : list){
 			
-			/*if (prev_point != null 
-					&& (point.getTime() - prev_point.getTime() > this.MONITOR_FREQ))*/
+			if (prev_point != null 
+					&& (point.getTime() - prev_point.getTime() > this.MONITOR_FREQ))
 			if (prev_point != null)
 			{
 				//this is 2nd point go on && sampling time is enough to save the point:
@@ -355,7 +360,7 @@ public class VMSMainActivity extends FragmentActivity
 					.fromResource(R.drawable.route_end)));
 		}
 				
-	}
+	}*/
 	
 	/**
 	 * New draw route function which used the route_id implementation
@@ -558,6 +563,18 @@ public class VMSMainActivity extends FragmentActivity
     		loggingService.doStartStop(false);
     	}
     }
+    
+    /**
+     * Check the state of stopping progress:
+     * @return
+     */
+    private boolean isRunningProgress(){
+    	// if we are in stopping progress, the stop button will be disabled.
+    	Button btnStop = (Button) findViewById(R.id.buttonStop);
+    	// not yet enabled means not clicked
+    	//boolean isStopClicked = !btnStop.isEnabled(); 
+    	return btnStop.isEnabled();
+    }
 	
     /**
      * Called when the Checkin button is clicked.
@@ -668,6 +685,7 @@ public class VMSMainActivity extends FragmentActivity
         GetPreferences();
         StartAndBindService();
         
+        //getLocationAndDisplayOnMap();
         //Scheduling display update map when it become visible:
         /*int delay = 5000;// in ms 
 
@@ -761,8 +779,9 @@ public class VMSMainActivity extends FragmentActivity
 	
 	/**
      * Handles the hardware back-button press
+     * Add: 5/Jul/2013
      */
-    /*public boolean onKeyDown(int keyCode, KeyEvent event)
+    public boolean onKeyDown(int keyCode, KeyEvent event)
     {
         Utilities.LogInfo("KeyDown - " + String.valueOf(keyCode));
 
@@ -772,7 +791,7 @@ public class VMSMainActivity extends FragmentActivity
         }
 
         return super.onKeyDown(keyCode, event);
-    }*/
+    }
 	
 	/**
      * Gets preferences chosen by the user
@@ -800,21 +819,54 @@ public class VMSMainActivity extends FragmentActivity
                 startActivity(settingsActivity);
                 break;
             case R.id.mnuFAQ:
-                //Intent faqtivity = new Intent(getApplicationContext(), Faqtivity.class);
-                //startActivity(faqtivity);
+                Intent helpAct = new Intent(getApplicationContext(), HelpFAQ.class);
+                startActivity(helpAct);
                 break;
             case R.id.mnuExit:
-                // Synchnorize the logged data to VMS server before exit.
-         		this.synchLoggedDataToVMS();
-         		loggingService.StopLogging();
-                loggingService.stopSelf();
-         		// Clear session data before exit.
-                clearSessionData();
-                finish();
+            	if (Session.isStarted() && this.isRunningProgress()){
+            		// Notify user that we currently running, not yet stop, so cann't exit
+	                this.displayAlertDialog();
+            	} else {
+            		// This can exit safely
+            		// Synchnorize the logged data to VMS server before exit.
+	         		this.synchLoggedDataToVMS();
+	         		loggingService.StopLogging();
+	                loggingService.stopSelf();
+            		// Clear session data before exit.
+                    clearSessionData();
+                    finish();
+            	}
+         		
                 break;
         }
         return false;
-    }    
+    }
+    
+    /**
+     * Display an alert diaglog message to user. 
+     */
+    private void displayAlertDialog(){
+    	
+    	AlertDialog.Builder builder = new AlertDialog.Builder(VMSMainActivity.this) ;
+		
+		// Setting Dialog Title
+		builder.setTitle("WARNING");
+		// Setting Dialog Message
+		builder.setMessage("Please stop tracking before exit !");
+		
+		AlertDialog alertDialog = builder.create();
+		
+		alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				// Write your code here to execute after dialog closed
+				//VMSMainActivity.this.finish();
+		    }
+		});
+		
+		alertDialog.show();
+	}
+    
+
     
     /**
      * Fire when callback from the service.
@@ -838,17 +890,6 @@ public class VMSMainActivity extends FragmentActivity
     	
     	drawRoute2();
     	showVisitPlaceDB();
-    	// Add an Mark to the current location:
-    	// No need to display current location pin, 
-    	//	due to Main UI already had one in the MapFragement
-    	/*
-    	 * Marker currentPos = googleMap.addMarker(new MarkerOptions()
-    					.position(new LatLng(loc.getLatitude(), loc.getLongitude()))
-    					.title("You are here")
-    					.snippet("Hello")
-    					.icon(BitmapDescriptorFactory
-    							.fromResource(R.drawable.current_location_pin)));
-    							*/
     }
     
     /**
@@ -878,5 +919,52 @@ public class VMSMainActivity extends FragmentActivity
     		Utilities.LogError("synchLoggedDataToVMS", e);
     	}
     }
+    
+    LastLocationFinder lastLocationFinder;
+    /**
+     * Time to happended: at the onCreate event.
+     * @param context
+     */
+    private void prepareFastLocationFix(Context context){
+    	lastLocationFinder = new LastLocationFinder(context);
+    	
+    }
+    
+    /**
+     * Find the last known location (using a {@link LastLocationFinder}) and updates the
+     * place list accordingly.
+     * Time to happended: at the onResume event.
+     */
+    protected void getLocationAndDisplayOnMap() {
+      
+    	Location lastKnownLocation = lastLocationFinder.getLastBestLocation(VMSConstants.MAX_DISTANCE, 
+              System.currentTimeMillis() - VMSConstants.MAX_TIME);
+          
+     	navigateToLocation(lastKnownLocation);     
+     	//Finished request a single location update, should remove it from now.
+     	lastLocationFinder.cancel();
+    }
+    
+    /**
+     * Navigate screen to be centered by a given location
+     * @param location
+     */
+    public void navigateToLocation(Location loc) {
+		// TODO Auto-generated method stub
+		
+		// Creating a LatLng object for the current location
+		LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+		// Showing the current location in Google Map
+		googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+		// Zoom in the Google Map
+		googleMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+		
+		// Add an Mark to the current location:
+		/*Marker currentPos = googleMap.addMarker(new MarkerOptions()
+				.position(latLng)
+				.title("You are here")
+				.icon(BitmapDescriptorFactory
+						.fromResource(R.drawable.current_location_pin)));*/
+	}
 
 }

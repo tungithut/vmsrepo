@@ -143,7 +143,7 @@ public class AppSettings extends Application
        return preferCellTower;
    }
 
-   static void setPreferCellTower(boolean preferCellTower)
+   public static void setPreferCellTower(boolean preferCellTower)
    {
        AppSettings.preferCellTower = preferCellTower;
    }
@@ -194,7 +194,7 @@ public class AppSettings extends Application
     /**
      * @param keepFix the keepFix to set
      */
-    static void setKeepFix(boolean keepFix)
+    public static void setKeepFix(boolean keepFix)
     {
         AppSettings.keepFix = keepFix;
     }
@@ -210,7 +210,7 @@ public class AppSettings extends Application
     /**
      * @param retryInterval the retryInterval to set
      */
-    static void setRetryInterval(int retryInterval)
+    public static void setRetryInterval(int retryInterval)
     {
         AppSettings.retryInterval = retryInterval;
     }
@@ -243,7 +243,7 @@ public class AppSettings extends Application
     /**
      * @param minimumAccuracy the minimumAccuracy to set
      */
-    static void setMinimumAccuracyInMeters(int minimumAccuracy)
+    public static void setMinimumAccuracyInMeters(int minimumAccuracy)
     {
         AppSettings.minimumAccuracy = minimumAccuracy;
     }

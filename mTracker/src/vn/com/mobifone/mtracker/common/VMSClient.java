@@ -94,6 +94,7 @@ public class VMSClient
                 params.put("speed", String.valueOf(point.getSpeed()));
                 params.put("timestamp", String.valueOf(point.getTime()));
                 params.put("locStatus", point.getLoc_status());
+                params.put("routeId", String.valueOf(point.getRouteId()));
                 
                 if ("start".equals(point.getLoc_status())
                 		|| "stop".equals(point.getLoc_status())) {
@@ -294,7 +295,8 @@ public class VMSClient
             if (response != null && 
             		("OK".equals(response) || "OK\n\r\n".equals(response))){
             	// update into DB the sent_status become '1'.
-            	Utilities.LogInfo("onSuccess.Success :" + response);
+            	Utilities.LogInfo("onSuccess.Success :" + response + " params:" + params);
+            	//Utilities.LogError("onSucess.Failure :" + response + " params:" + params, new Exception(""));
             	dbHandler.updateWaypointSent(point, SEND_SUCCESS);
 	            callback.OnCompleteLocation();
             } else {
