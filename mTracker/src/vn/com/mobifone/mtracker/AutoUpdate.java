@@ -79,8 +79,11 @@ public class AutoUpdate extends Activity {
             urlConnection.connect();
             
             // set the path where we want to save the file
-            File SDCardRoot = Environment.getExternalStorageDirectory();
-            String PATH = SDCardRoot + VMSConstants.APP_HOME;
+            //File SDCardRoot = Environment.getExternalStorageDirectory();
+            File SDCardRoot = getApplicationContext().getFilesDir();
+            
+            //String PATH = SDCardRoot + VMSConstants.APP_HOME;
+            String PATH = SDCardRoot + "";
             
             File fileDir = new File(PATH);
             if (!fileDir.exists()){
@@ -90,7 +93,8 @@ public class AutoUpdate extends Activity {
             // create a new file, to save the downloaded file
             file = new File(fileDir, "mtracker.apk");
  
-            FileOutputStream fileOutput = new FileOutputStream(file);
+            //FileOutputStream fileOutput = new FileOutputStream(file);
+            FileOutputStream fileOutput = openFileOutput("mtracker.apk", MODE_WORLD_READABLE | MODE_WORLD_WRITEABLE);
                         
             // Stream used for reading the data from the internet
             InputStream inputStream = urlConnection.getInputStream();

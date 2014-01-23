@@ -27,7 +27,12 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 	// All Static variables
 	// Database Version
-	private static final int DATABASE_VERSION = 1;
+	/**
+	 * DB Version changelog:
+	 * 		1: initializing version
+	 * 		2: add route_id column to the 'Routes' table		
+	 */
+	private static final int DATABASE_VERSION = 2;//current version
 
 	// Database Name
 	private static final String DATABASE_NAME = "db.mtracker";
@@ -221,13 +226,30 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	 * Used in case of ugrade Database version
 	 */
 	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+	public void onUpgrade(SQLiteDatabase db, int currentVersion, int newVersion) {
 		// TODO Auto-generated method stub
 		// Drop older table if existed
+		/*
 		db.execSQL("DROP TABLE IF EXISTS " + Waypoints.TABLE);
 
 		// Create tables again
-		onCreate(db);
+		onCreate(db);*/
+		Utilities.LogDebug("DatabaseHandler.onUpgrade:" + "Upgrading db from " + currentVersion + " to " + newVersion);
+		 
+	      if (currentVersion == 1) // From 1 to 2 ( add new column route_id to Routes table ) 
+	      {
+	         for (String statement : Routes.UPGRADE_STATEMENT_1_TO_2)
+	         {
+	            db.execSQL(statement);
+	         }
+	         currentVersion = 2;
+	      }
+	      
+	      /*if (currentVersion == 8) // From 8 to 9 ( media Uri data ) 
+	      {
+	         db.execSQL(Media.CREATE_STATEMENT);
+	         currentVersion = 9;
+	      }*/
 	}
 
 	/**
@@ -668,7 +690,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		static final String CHECKIN_STATUS_TYPE = "INTEGER";
 		static final String SENT_STATUS_TYPE = "INTEGER";
 		static final String _ID_TYPE = "INTEGER PRIMARY KEY AUTOINCREMENT";
-		static final String ROUTE_ID_TYPE = "INTEGER";
+		static final String ROUTE_ID_TYPE = "UNSIGNED BIG INT";
 
 		// Data object's properties:
 		private String imei;
@@ -796,8 +818,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				+ Routes.TABLE + "(" + " " 
 				+ Routes.ID_COL + " "
 				+ Routes._ID_TYPE + "," + " "
+				+ Routes.ROUTE_ID_COL + " "
+				+ Routes.ROUTE_ID_TYPE + "," + " "
 				+ Routes.TIME_COL + " " 
 				+ Routes.TIME_TYPE + ");" ;
+		
+		 /* SQL to upgrade DB tables from version 1 to version 2 */
+		 static final String[] UPGRADE_STATEMENT_1_TO_2 = 
+	     {
+	            "ALTER TABLE " + Routes.TABLE + " ADD COLUMN " + Routes.ROUTE_ID_COL + " " + Routes.ROUTE_ID_TYPE +";"
+	            //"ALTER TABLE " + Waypoints.TABLE + " ADD COLUMN " + WaypointsColumns.ALTITUDE + " " + WaypointsColumns.ALTITUDE_TYPE +";",
+	            //"ALTER TABLE " + Waypoints.TABLE + " ADD COLUMN " + WaypointsColumns.BEARING  + " " + WaypointsColumns.BEARING_TYPE +";"
+	     };
 	}
 
 	/**
@@ -810,11 +842,15 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		/** The id col */
 		public static final String ID_COL = "_id";
 		
+		/** The id col */
+		public static final String ROUTE_ID_COL = "route_id";
+		
 		/** The recorded time */
 		public static final String TIME_COL = "time";
 		
 		static final String _ID_TYPE = "INTEGER PRIMARY KEY AUTOINCREMENT";
-		static final String TIME_TYPE = "INTEGER NOT NULL";
+		static final String ROUTE_ID_TYPE = "UNSIGNED BIG INT";
+		static final String TIME_TYPE = "UNSIGNED BIG INT";
 		
 		/** Data object's properties **/
 		private long routeId;
@@ -851,16 +887,18 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		ContentValues args = new ContentValues();
 		
 		args.put(Routes.TIME_COL, location.getTime());
+		args.put(Routes.ROUTE_ID_COL, location.getTime());//17.jul
 		
-		long routeId = sqldb.insert(Routes.TABLE, null, args);
+		long _id = sqldb.insert(Routes.TABLE, null, args);
 		
-		if (routeId == -1){
+		if (_id == -1){
 			Utilities.LogError("insertNewRoute.error while insert" , new Exception(""));
+			return _id;
 		}
 		
 		sqldb.close();
 		
-		return routeId;
+		return location.getTime();//we use the 'start' time as routeId, it's unique.
 	}
 	
 	/**
@@ -872,7 +910,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		long lastestId = 0;
 		
 		// Select All Query
-		String selectQuery = "SELECT MAX(_ID) AS LATEST_ID FROM " + Routes.TABLE;
+		//String selectQuery = "SELECT MAX(_ID) AS LATEST_ROUTE_ID FROM " + Routes.TABLE;
+		String selectQuery = "SELECT MAX(ROUTE_ID) AS LATEST_ROUTE_ID FROM " + Routes.TABLE;
 		
 		SQLiteDatabase db = this.getWritableDatabase();
 		Cursor cursor = db.rawQuery(selectQuery, null);
@@ -881,7 +920,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			// looping through all rows and adding to list
 			if (cursor.moveToFirst()) {
 				do {				
-					lastestId = cursor.getLong(cursor.getColumnIndex("LATEST_ID"));
+					lastestId = cursor.getLong(cursor.getColumnIndex("LATEST_ROUTE_ID"));
 					
 				} while (cursor.moveToNext());
 			}
@@ -915,7 +954,8 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			// looping through all rows and adding to list
 			if (cursor.moveToFirst()) {
 				do {				
-					long routeId = cursor.getLong(cursor.getColumnIndex("_id"));
+					//long routeId = cursor.getLong(cursor.getColumnIndex("_id"));
+					long routeId = cursor.getLong(cursor.getColumnIndex("route_id"));
 					listOfRouteId.add(routeId);
 					
 				} while (cursor.moveToNext());

@@ -160,7 +160,7 @@ public class VMSMainActivity extends FragmentActivity
 		// Temporary for debugging purpose:
 		Session.setDebugEnabled(false);
 		
-		if (Session.isDebugEnabled()){
+		if (Session.isDebugEnabled() ){
 			Toast.makeText(getApplicationContext(), "MainAct.onCreate!", Toast.LENGTH_SHORT).show();
 		}
 		
@@ -664,7 +664,7 @@ public class VMSMainActivity extends FragmentActivity
     protected void onStart()
     {
         Utilities.LogDebug("VMSMainActivity.onStart");
-        if (Session.isDebugEnabled()){
+        if (Session.isDebugEnabled() ){
         	Toast.makeText(getApplicationContext(), "MainAct.onStart", Toast.LENGTH_SHORT).show();
         }
         super.onStart();
@@ -676,7 +676,7 @@ public class VMSMainActivity extends FragmentActivity
     protected void onResume()
     {
         //Utilities.LogDebug("VMSMainActivity.onResume");
-    	if (Session.isDebugEnabled()){
+    	if (Session.isDebugEnabled() ){
     		Toast.makeText(getApplicationContext(), "MainAct.onResume", Toast.LENGTH_SHORT).show();
     	}
         super.onResume();
@@ -703,20 +703,43 @@ public class VMSMainActivity extends FragmentActivity
     @Override
     protected void onPause()
     {
-    	if (Session.isDebugEnabled()){
+    	if (Session.isDebugEnabled() ){
     		Toast.makeText(getApplicationContext(), "MainAct.onPause", Toast.LENGTH_SHORT).show();
     	}
         Utilities.LogDebug("VMSMainActivity.onPause");
         StopAndUnbindServiceIfRequired();
         super.onPause();
     }
+    /**
+     * Added 12.sept.2013: to test the bug case that stop button is ON after back hw is clicked.
+     * No need to implement anything here.
+     */
+   /* @Override
+	protected void onStop() {
+		// TODO Auto-generated method stub
+    	if (Session.isDebugEnabled() || true){
+    		Toast.makeText(getApplicationContext(), "MainAct.onStop", Toast.LENGTH_SHORT).show();
+    	}
+		super.onStop();
+	}*/
+    
+    /**
+     * Added 12.sept.2013: we will override the back hardware key clicked
+     * When we current on the main activity, no need to destroy the main activity. 
+     * Instead, Just execute similiar to Home clicked event.
+     */
+	/*@Override
+	public void onBackPressed() {
+		// TODO Auto-generated method stub
+		super.onBackPressed();
+	}*/
 
-    @Override
+	@Override
     protected void onDestroy()
     {
 
         Utilities.LogDebug("VMSMainActivity.onDestroy");
-        if (Session.isDebugEnabled()){
+        if (Session.isDebugEnabled() ){
         	Toast.makeText(getApplicationContext(), "MainAct.onDestroy", Toast.LENGTH_SHORT).show();
         }
         StopAndUnbindServiceIfRequired();
@@ -780,6 +803,7 @@ public class VMSMainActivity extends FragmentActivity
 	/**
      * Handles the hardware back-button press
      * Add: 5/Jul/2013
+     * Changed: 12.sept.2013
      */
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
@@ -787,7 +811,11 @@ public class VMSMainActivity extends FragmentActivity
 
         if (keyCode == KeyEvent.KEYCODE_BACK && Session.isBoundToService())
         {
-            StopAndUnbindServiceIfRequired();
+        	//Toast.makeText(getApplicationContext(), "MainAct.onKeyDown",Toast.LENGTH_SHORT).show();
+            //StopAndUnbindServiceIfRequired();
+            // This will make BACK behaviour like the HOME key           
+            moveTaskToBack(true);
+            return true;
         }
 
         return super.onKeyDown(keyCode, event);
@@ -951,7 +979,9 @@ public class VMSMainActivity extends FragmentActivity
      */
     public void navigateToLocation(Location loc) {
 		// TODO Auto-generated method stub
-		
+		if (loc==null)
+			// if given location is null, just do nothing.
+			return;
 		// Creating a LatLng object for the current location
 		LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
 		// Showing the current location in Google Map

@@ -29,7 +29,7 @@
     <string name="default_vms_server_port">8080</string>
     <string name="default_vms_server_path">/GTS/eventdata</string>
     
-    <string name="connection_error">Unable to load content. Check your network connection.</string>
+    <string name="connection_error">Unable to connect to the Internet. Please check your network connection (wifi/3g).</string>
     <string name="xml_error">Invalid VERSION_URL XML file.</string>
     
     

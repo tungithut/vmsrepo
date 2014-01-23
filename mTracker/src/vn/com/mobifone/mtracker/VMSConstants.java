@@ -21,7 +21,7 @@ import android.app.AlarmManager;
 public class VMSConstants {
   
   // APK version number (incresement each deployment)
-  public static String APK_VERSION = "1.2.1";
+  public static String APK_VERSION = "1.2.4";
   
   // Auto-update configuration
   public static String DEST_FILE_PATH 	 = "mtracker.apk";

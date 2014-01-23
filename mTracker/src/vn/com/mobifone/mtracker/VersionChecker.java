@@ -49,7 +49,7 @@ public class VersionChecker extends Activity {
 	    	} else {
 	    		// Not available network service, display error dialog and exit the app
 	    		showErrorPage();
-	    		finish();
+	    		//finish();
 	    	}
 		}
 	}
